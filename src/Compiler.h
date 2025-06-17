@@ -1,4 +1,3 @@
-// src/Compiler.h
 #ifndef COMPILER_H
 #define COMPILER_H
 
@@ -6,14 +5,15 @@
 
 class Compiler {
 private:
-    std::string userCodeFile;
+    std::string filename;
+    std::string compilerFlags;
 
 public:
     Compiler();
-
     void writeCode();
     void compileAndRun();
-    void clearCode();
+    void clearFile();
+    void setCompilerFlags();
 };
 
 #endif

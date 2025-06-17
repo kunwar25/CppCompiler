@@ -1,54 +1,50 @@
-// src/Compiler.cpp
 #include "Compiler.h"
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
-#include <filesystem>
+#include <chrono>
 
-#ifdef _WIN32
-#define CLEAR_COMMAND "cls"
-#else
-#define CLEAR_COMMAND "clear"
-#endif
+Compiler::Compiler() : filename("user_code/main.cpp"), compilerFlags("") {}
 
-Compiler::Compiler() {
-    userCodeFile = "user_code/main.cpp";
-}
-
-void Compiler::writeCode() {
-    std::ofstream outFile(userCodeFile);
-    if (!outFile.is_open()) {
-        std::cerr << "Error opening file for writing.\n";
-        return;
-    }
-
-    std::cout << "Enter your C++ code (type 'END' on a new line to finish):\n";
+void Compiler::writeCode() { 
+    std::ofstream file(filename);
     std::string line;
+
+    std::cout << "Enter your C++ code (type 'END' to finish):\n";
     while (true) {
         std::getline(std::cin, line);
         if (line == "END") break;
-        outFile << line << std::endl;
+        file << line << "\n";
     }
-    outFile.close();
+    file.close();
     std::cout << "Code saved successfully.\n";
 }
 
 void Compiler::compileAndRun() {
-    std::string compileCommand = "g++ " + userCodeFile + " -o user_code/output.exe 2> logs/compile.log";
-    int compileResult = system(compileCommand.c_str());
+    std::string compileCmd = "g++ " + compilerFlags + " " + filename + " -o user_code/output.exe 2> logs/compile.log";
+    std::cout << "Compiling...\n";
 
-    if (compileResult != 0) {
-        std::cout << "Compilation failed. See logs/compile.log for details.\n";
-        return;
+    if (system(compileCmd.c_str()) == 0) {
+        std::cout << "\033[32m[✔] Compilation successful\033[0m\nRunning program...\n";
+
+        auto start = std::chrono::high_resolution_clock::now();
+        system("user_code\\output.exe");
+        auto end = std::chrono::high_resolution_clock::now();
+
+        std::chrono::duration<double> elapsed = end - start;
+        std::cout << "Execution Time: " << elapsed.count() << " seconds\n";
+    } else {
+        std::cout << "\033[31m[✘] Compilation failed.\033[0m\nCheck logs/compile.log\n";
     }
-
-    std::cout << "Compilation successful. Running program...\n\n";
-    std::string runCommand = "user_code\\output.exe";
-    system(runCommand.c_str());
 }
 
-void Compiler::clearCode() {
-    std::ofstream outFile(userCodeFile, std::ios::trunc);
-    outFile.close();
-    std::cout << "Code cleared successfully.\n";
+void Compiler::clearFile() {
+    std::ofstream file(filename, std::ofstream::trunc);
+    file.close();
+    std::cout << "File cleared.\n";
+}
+
+void Compiler::setCompilerFlags() {
+    std::cout << "Enter compiler flags (e.g. -g, -O2): ";
+    std::getline(std::cin, compilerFlags);
 }
